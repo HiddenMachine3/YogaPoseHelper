@@ -13,8 +13,8 @@ from app.core.math.math_utility import clamp
 import app.core.graphics.graphics_assistant as graphic
 from app.core.graphics.graphics_assistant import DrawingSpec
 
-_PRESENCE_THRESHOLD = 0.5
-_VISIBILITY_THRESHOLD = 0.5
+_PRESENCE_THRESHOLD = 0.5 # for error skeleton calculations only
+_VISIBILITY_THRESHOLD = 0.5 # for error skeleton calculations only
 
 
 class PoseHelperClass:
