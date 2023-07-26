@@ -1,6 +1,6 @@
 # YogaPoseHelper
 
-A Project that aims to help self learners practice yoga efficiently.  
+The Project that aims to help self learners practice yoga efficiently.  
 
 Made using mediapipe and matplotlib
 
@@ -10,3 +10,4 @@ Currrently supports:
 Todo:
 -Pose classification
 -webcam input
+-mapping the keypoints based on multiple pictures from different angles
