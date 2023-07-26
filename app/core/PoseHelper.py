@@ -17,7 +17,7 @@ _PRESENCE_THRESHOLD = 0.5 # for error skeleton calculations only
 _VISIBILITY_THRESHOLD = 0.5 # for error skeleton calculations only
 
 
-class PoseHelperClass:
+class PoseHelper:
     def __init__(self, img_path):
         self.img = cv2.imread(img_path)
         self.mp_pose = mp.solutions.pose
