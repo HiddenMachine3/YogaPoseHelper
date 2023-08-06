@@ -1,3 +1,4 @@
+from __future__ import annotations
 import math
 import cv2
 import numpy as np
@@ -301,3 +302,7 @@ class PoseHelper:
                 fig_title=title,
                 pronounce_error_by=pronounce_error_by,
             )
+    
+    @staticmethod
+    def calculate_angle_differences(p1:PoseHelper,p2:PoseHelper):
+        pass
