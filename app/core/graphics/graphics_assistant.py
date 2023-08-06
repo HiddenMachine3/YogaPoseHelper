@@ -21,7 +21,7 @@ def get_gradient_color(colors, n):
     return list(zip(r, g, b))
 
 def draw_2_way_gradient_line_3d(
-    ax_thing, start, end, left_intensity, right_intensity, num_points=100
+    ax, start, end, left_intensity, right_intensity, num_points=100
 ):
     # Generate points along the line in 3D space
     x = np.linspace(start[0], end[0], num_points)
@@ -40,7 +40,7 @@ def draw_2_way_gradient_line_3d(
     line = Line3DCollection(list(zip(points[:-1], points[1:])), colors=colors, linewidths=3,zorder= 2)
 
     # Add the line to the 3D plot
-    ax_thing.add_collection3d(line)
+    ax.add_collection3d(line)
 
 def _normalize_color(color):
     return tuple(v / 255.0 for v in color)

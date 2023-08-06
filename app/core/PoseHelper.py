@@ -8,13 +8,13 @@ from typing import List, Optional, Tuple
 from mediapipe.framework.formats import landmark_pb2
 
 
-from app.core.math.math_utility import findAngle
+from app.core.math.math_utility import find_xy_plane_angle
 from app.core.math.math_utility import clamp
 import app.core.graphics.graphics_assistant as graphic
 from app.core.graphics.graphics_assistant import DrawingSpec
 
-_PRESENCE_THRESHOLD = 0.5 # for error skeleton calculations only
-_VISIBILITY_THRESHOLD = 0.5 # for error skeleton calculations only
+_PRESENCE_THRESHOLD = 0.5  # for error skeleton calculations only
+_VISIBILITY_THRESHOLD = 0.5  # for error skeleton calculations only
 
 
 class PoseHelper:
@@ -26,8 +26,8 @@ class PoseHelper:
         )
         self.mp_drawing = mp.solutions.drawing_utils
         self.plottable_landmarks = {}
-
-        self.landmark_drawing_spec = DrawingSpec(color=(150,150,150))
+        self.img_height,self.img_width, _ =self.img.shape
+        self.landmark_drawing_spec = DrawingSpec(color=(150, 150, 150))
 
     def display_img(self, fig_size, fig_title):
         graphic.display_image(self.img, fig_size, fig_title)
@@ -43,9 +43,11 @@ class PoseHelper:
                     self.mp_pose.PoseLandmark(i).value
                 ]
                 if verbose:
-                    print(f"{self.mp_pose.PoseLandmark(i).name}:\n{norm_landmark}")
+                    print(f"{self.mp_pose.PoseLandmark(i).name}:\n{[norm_landmark.x *self.img_width, norm_landmark.y*self.img_height, norm_landmark.z*self.img_width]}")
+                
+                #converting normalised landmarks to image coordinates
                 self.landmarks.append(
-                    np.array([norm_landmark.x, norm_landmark.y, norm_landmark.z])
+                    np.array([norm_landmark.x *self.img_width, norm_landmark.y*self.img_height, norm_landmark.z*self.img_width])
                 )
 
     def plot_keypoints2d(self, fig_title="", figsize=[5, 5]):
@@ -75,6 +77,8 @@ class PoseHelper:
     ):
         # {i:set() for i in range(len(landmarks))}
         arms_and_angles = [None for _ in range(len(landmarks))]
+
+        # each index of connected_points is a vertex on the skeleton, and contains a set of which points are connected to it
         connected_points = [set() for _ in range(len(self.landmarks))]
 
         # # # LOOPING THROUGH EACH LANDMARK
@@ -120,14 +124,14 @@ class PoseHelper:
                         )
 
         # now we got a set of connected points for each landmark,
-        # lets figure out the angles for every set of 3 connected points ( v ^ L \_ )
+        # lets figure out the angles for every set of 3 connected points (1 vertex and 2 arms, ex: L)
 
         """
         looping through every point again to find the
-        angle between every group of 3 linearly connected points
+        angle between every group of arm-vertex-arm
         """
         # print(landmarks)
-        for vertex in range(len(connected_points)):
+        for vertex in range(33):#len(connected_points)):
             points = list(connected_points[vertex])
 
             num_connections = len(points)
@@ -139,7 +143,7 @@ class PoseHelper:
                         try:
                             # print(landmarks[points[i]],landmarks[vertex],landmarks[points[j]])
 
-                            angle = findAngle(
+                            angle = find_xy_plane_angle(
                                 landmarks[points[i]],
                                 landmarks[vertex],
                                 landmarks[points[j]],
@@ -155,7 +159,7 @@ class PoseHelper:
 
         return arms_and_angles
 
-    def plot_3d_graphics(
+    def plot_3d_error_graphics(
         self,
         landmark_list: landmark_pb2.NormalizedLandmarkList,
         connections: Optional[List[Tuple[int, int]]] = None,
@@ -164,7 +168,7 @@ class PoseHelper:
         fig_size=(10, 10),
         ideal_arms_and_angles=None,
         fig_title="",
-        pronounce_error_by=10
+        pronounce_error_by=10,
     ):
         plt.figure(figsize=fig_size)
         ax = plt.axes(projection="3d")
@@ -175,17 +179,18 @@ class PoseHelper:
             print("ideal angles not found")
             return
 
+        # init all keypoint colours to green
+        # a precense of red color will result in a gradient line
         keypoint_colours = {key: (0, 1, 0) for key in self.plottable_landmarks.keys()}
 
         # GRADIENT ERROR CONNECTORS
         if connections:
             num_landmarks = len(landmark_list.landmark)
-            # Draws the connections if the start and end landmarks are both visible.
 
             for connection in connections:
                 start_idx = connection[0]
                 end_idx = connection[1]
-
+                # Draws the connections if the start and end landmarks are both visible.
                 if not (
                     0 <= start_idx < num_landmarks and 0 <= end_idx < num_landmarks
                 ):
@@ -203,7 +208,7 @@ class PoseHelper:
                     ]
 
                     left, right = 0, 0
-
+                    # finding the difference b/w each angle at that vertex:
                     if self.arms_and_angles[start_idx]:
                         for arms, angle in self.arms_and_angles[start_idx].items():
                             if end_idx in arms:
@@ -221,16 +226,16 @@ class PoseHelper:
                                         ideal_arms_and_angles[end_idx][arms] - angle
                                     )
                                     right = max(right, diff / (2 * math.pi))
-                    
+
                     # scaling up to pronounce errors
-                    left = clamp(left*pronounce_error_by,0,1)
-                    right = clamp(right*pronounce_error_by,0,1)
-                   
+                    left = clamp(left * pronounce_error_by, 0, 1)
+                    right = clamp(right * pronounce_error_by, 0, 1)
+
                     keypoint_colours[start_idx] = (left, 1 - left, 0)
                     keypoint_colours[end_idx] = (right, 1 - right, 0)
 
                     graphic.draw_2_way_gradient_line_3d(
-                        ax_thing=ax,
+                        ax=ax,
                         start=landmark_pair[0],
                         end=landmark_pair[1],
                         left_intensity=left,
@@ -264,6 +269,23 @@ class PoseHelper:
         plt.show()
 
     def calculate_angles(self):
+        """
+        for each vertex, it calculates which sets of 2 arms are connected, and the angles b/w these 2 arms for each set
+
+
+        arms_and_angles is a list of {vertex,2 arms connected to it, and angle made up by them}
+        the index of the list is the vertex number
+        at each index, you have a dictionary of:
+            {
+                {each set of 2 arms are connected to vertex} : angle between arm1,vertex,arm2
+            }
+
+        ex: [{{arm1,arm2}:a12, {arm1,arm3}:a13,{arm2,arm3}:a23}, # this is for vertex 0
+        {{arm1,arm2}:a12, {arm1,arm3}:a13,{arm2,arm3}:a23}, # this is for vertex 1
+        {{arm1,arm2}:a12, {arm1,arm3}:a13,{arm2,arm3}:a23},...] # and so on
+
+
+        """
         self.arms_and_angles = self.calculate_arms_and_angles(
             self.landmarks,
             self.results.pose_world_landmarks,
@@ -272,10 +294,10 @@ class PoseHelper:
 
     def draw3dErrorDetectedSkeleton(self, idealPose, title="", pronounce_error_by=10):
         if self.results.pose_landmarks:
-            self.plot_3d_graphics(
+            self.plot_3d_error_graphics(
                 self.results.pose_world_landmarks,
                 self.mp_pose.POSE_CONNECTIONS,
                 ideal_arms_and_angles=idealPose.arms_and_angles,
                 fig_title=title,
-                pronounce_error_by = pronounce_error_by
+                pronounce_error_by=pronounce_error_by,
             )
