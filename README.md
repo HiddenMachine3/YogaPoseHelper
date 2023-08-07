@@ -10,5 +10,4 @@ Currrently supports:
 
 Todo:
 - [ ] Pose classification based on angles
-- [ ] webcam input for error highlighting
 - [ ] mapping the keypoints based on multiple pictures from different angles
