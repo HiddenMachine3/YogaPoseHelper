@@ -71,9 +71,8 @@ if __name__ == "__main__":
 
     # each directory in kaggle\\DATASET\\TRAIN has its name=the pose's name, and images of that pose are stored under it
     # following code loops through each image file, extracts landmarks of the pose in the image, and stores the coords in a csv
-    dataset_path = (
-        "C:\\Users\\cosmo\\Projects\\YogaPoseHelper\\app\\data\\kaggle\\DATASET\\TRAIN"
-    )
+    dataset_path ="C:\\Users\\cosmo\\Projects\\YogaPoseHelper\\app\\data\\kaggle\\DATASET\\TRAIN"
+    
     for pose_name in os.listdir(dataset_path):
         pose_dir_path = os.path.join(dataset_path, pose_name)
         print(pose_dir_path)

@@ -17,15 +17,14 @@ from app.core.graphics.graphics_assistant import DrawingSpec
 _PRESENCE_THRESHOLD = 0.5  # for error skeleton calculations only
 _VISIBILITY_THRESHOLD = 0.5  # for error skeleton calculations only
 
-
 class PoseHelper:
-    def __init__(self, img_path):
-        self.img = cv2.imread(img_path)
-        self.mp_pose = mp.solutions.pose
+    def __init__(self, img_path=None,img=None,mp_pose=None,pose=None,mp_drawing=None):
+        self.img = cv2.imread(img_path) if (img is None) else img
+        self.mp_pose = mp.solutions.pose if not mp_pose else mp_pose
         self.pose = self.mp_pose.Pose(
             static_image_mode=True, min_detection_confidence=0.3, model_complexity=2
-        )
-        self.mp_drawing = mp.solutions.drawing_utils
+        ) if not pose else pose
+        self.mp_drawing = mp.solutions.drawing_utils if not mp_drawing else mp_drawing
         self.plottable_landmarks = {}
         self.img_height,self.img_width, _ =self.img.shape
         self.landmark_drawing_spec = DrawingSpec(color=(150, 150, 150))
@@ -80,7 +79,7 @@ class PoseHelper:
         arms_and_angles = [None for _ in range(len(landmarks))]
 
         # each index of connected_points is a vertex on the skeleton, and contains a set of which points are connected to it
-        connected_points = [set() for _ in range(len(self.landmarks))]
+        connected_points = [set() for _ in range(len(landmarks))]
 
         # # # LOOPING THROUGH EACH LANDMARK
         for idx, landmark in enumerate(landmark_list.landmark):
