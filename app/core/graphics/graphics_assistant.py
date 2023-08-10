@@ -201,8 +201,8 @@ def draw_error_landmarks_2d(
                     right_intensity=right,
                     num_points=100,
                 )
-                cv2.putText(img, f"{left}", idx_to_coordinates[start_idx], cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 0), 2)
-                cv2.putText(img, f"{right}", idx_to_coordinates[end_idx], cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 0), 2)
+                cv2.putText(img, f"{round(left,ndigits=3)}", idx_to_coordinates[start_idx], cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 0), 2)
+                cv2.putText(img, f"{round(right,ndigits=3)}", idx_to_coordinates[end_idx], cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 0), 2)
 
     # Draws landmark points after finishing the connection lines, which is
     # aesthetically better.
