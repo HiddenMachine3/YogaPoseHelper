@@ -9,13 +9,13 @@ from typing import List, Optional, Tuple
 from mediapipe.framework.formats import landmark_pb2
 
 
-from app.core.math.math_utility import find_xy_plane_angle
+from app.core.math.math_utility import find_xy_plane_angle,find_3d_angle
 from app.core.math.math_utility import clamp
 import app.core.graphics.graphics_assistant as graphic
 from app.core.graphics.graphics_assistant import DrawingSpec
 
-_PRESENCE_THRESHOLD = 0.5  # for error skeleton calculations only
-_VISIBILITY_THRESHOLD = 0.5  # for error skeleton calculations only
+_PRESENCE_THRESHOLD = 0.2  # for error skeleton calculations only
+_VISIBILITY_THRESHOLD = 0.2  # for error skeleton calculations only
 
 class PoseHelper:
     def __init__(self, img_path=None,img=None,mp_pose=None,pose=None,mp_drawing=None):
@@ -144,7 +144,7 @@ class PoseHelper:
                         try:
                             # print(landmarks[points[i]],landmarks[vertex],landmarks[points[j]])
 
-                            angle = find_xy_plane_angle(
+                            angle = find_3d_angle(
                                 landmarks[points[i]],
                                 landmarks[vertex],
                                 landmarks[points[j]],
@@ -221,7 +221,7 @@ class PoseHelper:
 
                     if self.arms_and_angles[end_idx]:
                         for arms, angle in self.arms_and_angles[end_idx].items():
-                            if end_idx in arms:
+                            if start_idx in arms:
                                 if arms in ideal_arms_and_angles[end_idx]:
                                     diff = abs(
                                         ideal_arms_and_angles[end_idx][arms] - angle

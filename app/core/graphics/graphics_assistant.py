@@ -62,14 +62,14 @@ def draw_2_way_gradient_line_2d(
         x = int(start[0] + gradient[i] * (mid[0] - start[0]))
         y = int(start[1] + gradient[i] * (mid[1] - start[1]))
         color = tuple(int(255*(color1[j] + gradient[i] * (color2[j] - color1[j]))) for j in range(3))
-        cv2.circle(img,(x,y), 1, color, -1)
+        cv2.circle(img,(x,y), 3, color, -1)
 
     color1 = [right_intensity, 1-right_intensity, 0]
     for i in range(len(gradient)):
         x = int(end[0] + gradient[i] * (mid[0] - end[0]))
         y = int(end[1] + gradient[i] * (mid[1] - end[1]))
         color = tuple(int(255*(color1[j] + gradient[i] * (color2[j] - color1[j]))) for j in range(3))
-        cv2.circle(img,(x,y), 1, color, -1)
+        cv2.circle(img,(x,y), 3, color, -1)
 
 
 def _normalize_color(color):
@@ -178,7 +178,7 @@ def draw_error_landmarks_2d(
 
                 if arms_and_angles[end_idx]:
                     for arms, angle in arms_and_angles[end_idx].items():
-                        if end_idx in arms:
+                        if start_idx in arms:
                             if arms in ideal_arms_and_angles[end_idx]:
                                 diff = abs(
                                     ideal_arms_and_angles[end_idx][arms] - angle
