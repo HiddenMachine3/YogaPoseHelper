@@ -113,30 +113,8 @@ def draw_error_landmarks_2d(
                                      color=RED_COLOR),
     connection_drawing_spec: Union[DrawingSpec,
                                    Mapping[Tuple[int, int],
-                                           DrawingSpec]] = DrawingSpec()):
-    """Draws the landmarks and the connections on the image.
-
-    Args:
-      image: A three channel BGR image represented as numpy ndarray.
-      landmark_list: A normalized landmark list proto message to be annotated on
-        the image.
-      connections: A list of landmark index tuples that specifies how landmarks to
-        be connected in the drawing.
-      landmark_drawing_spec: Either a DrawingSpec object or a mapping from hand
-        landmarks to the DrawingSpecs that specifies the landmarks' drawing
-        settings such as color, line thickness, and circle radius. If this
-        argument is explicitly set to None, no landmarks will be drawn.
-      connection_drawing_spec: Either a DrawingSpec object or a mapping from hand
-        connections to the DrawingSpecs that specifies the connections' drawing
-        settings such as color and line thickness. If this argument is explicitly
-        set to None, no landmark connections will be drawn.
-
-    Raises:
-      ValueError: If one of the followings:
-        a) If the input image is not three channel BGR.
-        b) If any connetions contain invalid landmark index.
-    """
-
+                                           DrawingSpec]] = DrawingSpec(),
+    verbose:bool = True):
 
     if not landmark_list:
         return
@@ -201,8 +179,10 @@ def draw_error_landmarks_2d(
                     right_intensity=right,
                     num_points=100,
                 )
-                cv2.putText(img, f"{round(left,ndigits=3)}", idx_to_coordinates[start_idx], cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 0), 2)
-                cv2.putText(img, f"{round(right,ndigits=3)}", idx_to_coordinates[end_idx], cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 0), 2)
+
+                if(verbose):
+                    cv2.putText(img, f"{round(left,ndigits=3)}", idx_to_coordinates[start_idx], cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 0), 2)
+                    cv2.putText(img, f"{round(right,ndigits=3)}", idx_to_coordinates[end_idx], cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 0), 2)
 
     # Draws landmark points after finishing the connection lines, which is
     # aesthetically better.
