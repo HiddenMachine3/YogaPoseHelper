@@ -84,6 +84,7 @@ class PoseHelper:
         # # # LOOPING THROUGH EACH LANDMARK
         for idx, landmark in enumerate(landmark_list.landmark):
             if (
+                landmark and
                 landmark.HasField("visibility")
                 and landmark.visibility < _VISIBILITY_THRESHOLD
             ) or (
