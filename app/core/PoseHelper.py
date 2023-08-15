@@ -12,7 +12,6 @@ from mediapipe.framework.formats import landmark_pb2
 from app.core.math.math_utility import find_xy_plane_angle,find_3d_angle
 from app.core.math.math_utility import clamp
 import app.core.graphics.graphics_assistant as graphic
-from app.core.graphics.graphics_assistant import DrawingSpec
 
 _PRESENCE_THRESHOLD = 0.2  # for error skeleton calculations only
 _VISIBILITY_THRESHOLD = 0.2  # for error skeleton calculations only
@@ -27,7 +26,6 @@ class PoseHelper:
         self.mp_drawing = mp.solutions.drawing_utils if not mp_drawing else mp_drawing
         self.plottable_landmarks = {}
         self.img_height,self.img_width, _ =self.img.shape
-        self.landmark_drawing_spec = DrawingSpec(color=(150, 150, 150))
 
     def display_img(self, fig_size, fig_title):
         graphic.display_image(self.img, fig_size, fig_title)
@@ -160,114 +158,7 @@ class PoseHelper:
 
         return arms_and_angles
 
-    def plot_3d_error_graphics(
-        self,
-        landmark_list: landmark_pb2.NormalizedLandmarkList,
-        connections: Optional[List[Tuple[int, int]]] = None,
-        elevation: int = 10,
-        azimuth: int = 10,
-        fig_size=(10, 10),
-        ideal_arms_and_angles=None,
-        fig_title="",
-        pronounce_error_by=10,
-    ):
-        plt.figure(figsize=fig_size)
-        ax = plt.axes(projection="3d")
-        ax.set_title(fig_title)
-        ax.view_init(elev=elevation, azim=azimuth)
-
-        if not ideal_arms_and_angles:
-            print("ideal angles not found")
-            return
-
-        # init all keypoint colours to green
-        # a precense of red color will result in a gradient line
-        keypoint_colours = {key: (0, 1, 0) for key in self.plottable_landmarks.keys()}
-
-        # GRADIENT ERROR CONNECTORS
-        if connections:
-            num_landmarks = len(landmark_list.landmark)
-
-            for connection in connections:
-                start_idx = connection[0]
-                end_idx = connection[1]
-                # Draws the connections if the start and end landmarks are both visible.
-                if not (
-                    0 <= start_idx < num_landmarks and 0 <= end_idx < num_landmarks
-                ):
-                    raise ValueError(
-                        f"Landmark index is out of range. Invalid connection "
-                        f"from landmark #{start_idx} to landmark #{end_idx}."
-                    )
-                if (
-                    start_idx in self.plottable_landmarks
-                    and end_idx in self.plottable_landmarks
-                ):
-                    landmark_pair = [
-                        self.plottable_landmarks[start_idx],
-                        self.plottable_landmarks[end_idx],
-                    ]
-
-                    left, right = 0, 0
-                    # finding the difference b/w each angle at that vertex:
-                    if self.arms_and_angles[start_idx]:
-                        for arms, angle in self.arms_and_angles[start_idx].items():
-                            if end_idx in arms:
-                                if arms in ideal_arms_and_angles[start_idx]:
-                                    diff = abs(
-                                        ideal_arms_and_angles[start_idx][arms] - angle
-                                    )
-                                    left = max(left, diff / (2 * math.pi))
-
-                    if self.arms_and_angles[end_idx]:
-                        for arms, angle in self.arms_and_angles[end_idx].items():
-                            if start_idx in arms:
-                                if arms in ideal_arms_and_angles[end_idx]:
-                                    diff = abs(
-                                        ideal_arms_and_angles[end_idx][arms] - angle
-                                    )
-                                    right = max(right, diff / (2 * math.pi))
-
-                    # scaling up to pronounce errors
-                    left = clamp(left * pronounce_error_by, 0, 1)
-                    right = clamp(right * pronounce_error_by, 0, 1)
-
-                    keypoint_colours[start_idx] = (left, 1 - left, 0)
-                    keypoint_colours[end_idx] = (right, 1 - right, 0)
-
-                    graphic.draw_2_way_gradient_line_3d(
-                        ax=ax,
-                        start=landmark_pair[0],
-                        end=landmark_pair[1],
-                        left_intensity=left,
-                        right_intensity=right,
-                        num_points=100,
-                    )
-
-        # KEYPOINTS
-        graphic.draw_keypoints_on_3d_graph(
-            plottable_landmarks=self.plottable_landmarks,
-            AX=ax,
-            landmark_drawing_spec=self.landmark_drawing_spec,
-        )
-
-        # # print the keypoint names and number of angles associated with it
-        # for idx, pos in self.plotted_landmarks.items():
-        #     label = self.mp_pose.PoseLandmark(idx).name
-        #     ax.text(
-        #         pos[0],
-        #         pos[1],
-        #         pos[2],
-        #         s=f"{idx}." + label # + ":" + str((self.arms_and_angles[idx]))
-        #         if self.arms_and_angles[idx]
-        #         else label,
-        #         fontsize=font_size,
-        #         color="blue",
-        #         zorder=5,
-        #         zdir="y",
-        #     )
-
-        plt.show()
+    
 
     def calculate_angles(self):
         """
@@ -295,12 +186,14 @@ class PoseHelper:
 
     def draw3dErrorDetectedSkeleton(self, idealPose, title="", pronounce_error_by=10):
         if self.results.pose_landmarks:
-            self.plot_3d_error_graphics(
+            graphic.plot_3d_error_graphics(
                 self.results.pose_world_landmarks,
                 self.mp_pose.POSE_CONNECTIONS,
+                arms_and_angles=self.arms_and_angles,
                 ideal_arms_and_angles=idealPose.arms_and_angles,
                 fig_title=title,
                 pronounce_error_by=pronounce_error_by,
+                plottable_landmarks=self.plottable_landmarks
             )
     
     @staticmethod

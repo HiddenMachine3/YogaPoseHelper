@@ -8,6 +8,7 @@ from typing import Tuple
 from app.core.math.math_utility import clamp
 from math import pi
 
+
 def display_image(img, size, title):
     plt.figure(figsize=size)
     plt.title(title)
@@ -198,3 +199,114 @@ def draw_error_landmarks_2d(
             # Fill color into the circle
             cv2.circle(img, landmark_px, drawing_spec.circle_radius,
                        drawing_spec.color, drawing_spec.thickness)
+            
+def plot_3d_error_graphics(
+        landmark_list: landmark_pb2.NormalizedLandmarkList,
+        connections: Optional[List[Tuple[int, int]]] = None,
+        elevation: int = 10,
+        azimuth: int = 10,
+        fig_size=(10, 10),
+        arms_and_angles = None,
+        ideal_arms_and_angles=None,
+        fig_title="",
+        pronounce_error_by=10,
+        plottable_landmarks=None,
+        landmark_drawing_spec = DrawingSpec(color=(150, 150, 150))
+    ):
+        plt.figure(figsize=fig_size)
+        ax = plt.axes(projection="3d")
+        ax.set_title(fig_title)
+        ax.view_init(elev=elevation, azim=azimuth)
+
+        if (not ideal_arms_and_angles) or(not plottable_landmarks) or (not arms_and_angles):
+            print("ideal angles not found")
+            return
+
+        # init all keypoint colours to green
+        # a precense of red color will result in a gradient line
+        keypoint_colours = {key: (0, 1, 0) for key in plottable_landmarks.keys()}
+
+        # GRADIENT ERROR CONNECTORS
+        if connections:
+            num_landmarks = len(landmark_list.landmark)
+
+            for connection in connections:
+                start_idx = connection[0]
+                end_idx = connection[1]
+                # Draws the connections if the start and end landmarks are both visible.
+                if not (
+                    0 <= start_idx < num_landmarks and 0 <= end_idx < num_landmarks
+                ):
+                    raise ValueError(
+                        f"Landmark index is out of range. Invalid connection "
+                        f"from landmark #{start_idx} to landmark #{end_idx}."
+                    )
+                if (
+                    start_idx in plottable_landmarks
+                    and end_idx in plottable_landmarks
+                ):
+                    landmark_pair = [
+                        plottable_landmarks[start_idx],
+                        plottable_landmarks[end_idx],
+                    ]
+
+                    left, right = 0, 0
+                    # finding the difference b/w each angle at that vertex:
+                    if arms_and_angles[start_idx]:
+                        for arms, angle in arms_and_angles[start_idx].items():
+                            if end_idx in arms:
+                                if arms in ideal_arms_and_angles[start_idx]:
+                                    diff = abs(
+                                        ideal_arms_and_angles[start_idx][arms] - angle
+                                    )
+                                    left = max(left, diff / (180))
+
+                    if arms_and_angles[end_idx]:
+                        for arms, angle in arms_and_angles[end_idx].items():
+                            if start_idx in arms:
+                                if arms in ideal_arms_and_angles[end_idx]:
+                                    diff = abs(
+                                        ideal_arms_and_angles[end_idx][arms] - angle
+                                    )
+                                    right = max(right, diff / (180))
+
+                    # scaling up to pronounce errors
+                    left = clamp(left * pronounce_error_by, 0, 1)
+                    right = clamp(right * pronounce_error_by, 0, 1)
+
+                    keypoint_colours[start_idx] = (left, 1 - left, 0)
+                    keypoint_colours[end_idx] = (right, 1 - right, 0)
+
+                    draw_2_way_gradient_line_3d(
+                        ax=ax,
+                        start=landmark_pair[0],
+                        end=landmark_pair[1],
+                        left_intensity=left,
+                        right_intensity=right,
+                        num_points=100,
+                    )
+
+        # KEYPOINTS
+        draw_keypoints_on_3d_graph(
+            plottable_landmarks=plottable_landmarks,
+            AX=ax,
+            landmark_drawing_spec=landmark_drawing_spec,
+        )
+
+        # # print the keypoint names and number of angles associated with it
+        # for idx, pos in plotted_landmarks.items():
+        #     label = mp_pose.PoseLandmark(idx).name
+        #     ax.text(
+        #         pos[0],
+        #         pos[1],
+        #         pos[2],
+        #         s=f"{idx}." + label # + ":" + str((arms_and_angles[idx]))
+        #         if arms_and_angles[idx]
+        #         else label,
+        #         fontsize=font_size,
+        #         color="blue",
+        #         zorder=5,
+        #         zdir="y",
+        #     )
+
+        plt.show()
