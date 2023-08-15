@@ -152,7 +152,7 @@ def draw_error_landmarks_2d(
                                 diff = abs(
                                     ideal_arms_and_angles[start_idx][arms] - angle
                                 )
-                                left = max(left, diff / (2 * pi))
+                                left = max(left, diff / (180))
 
                 if arms_and_angles[end_idx]:
                     for arms, angle in arms_and_angles[end_idx].items():
@@ -161,7 +161,7 @@ def draw_error_landmarks_2d(
                                 diff = abs(
                                     ideal_arms_and_angles[end_idx][arms] - angle
                                 )
-                                right = max(right, diff / (2 * pi))
+                                right = max(right, diff / (180))
 
                 # scaling up to pronounce errors
                 left = clamp(left * pronounce_error_by, 0, 1)

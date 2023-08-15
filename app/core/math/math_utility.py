@@ -15,21 +15,18 @@ def find_xy_plane_angle(a, vertex, c):
 
     return angle
 
-def find_3d_angle(p1, vertex, p2):
-    x1, y1, z1 = p1
-    x2, y2, z2 = p2
-    xv, yv, zv = vertex
-    dx1 = x1 - xv
-    dy1 = y1 - yv
-    dz1 = z1 - zv
-    dx2 = x2 - xv
-    dy2 = y2 - yv
-    dz2 = z2 - zv
-    dot_product = dx1 * dx2 + dy1 * dy2 + dz1 * dz2
-    mag1 = math.sqrt(dx1 ** 2 + dy1 ** 2 + dz1 ** 2)
-    mag2 = math.sqrt(dx2 ** 2 + dy2 ** 2 + dz2 ** 2)
-    angle = math.acos(dot_product / (mag1 * mag2))
-    return math.degrees(angle)
+def find_3d_angle(p1, p2, p3):
+    v1 = [p1[0] - p2[0], p1[1] - p2[1], p1[2] - p2[2]]
+    v2 = [p3[0] - p2[0], p3[1] - p2[1], p3[2] - p2[2]]
+    dot_product = sum([v1[i] * v2[i] for i in range(3)])
+    magnitude_v1 = math.sqrt(sum([v1[i]**2 for i in range(3)]))
+    magnitude_v2 = math.sqrt(sum([v2[i]**2 for i in range(3)]))
+
+    if magnitude_v1 == 0 or magnitude_v2 ==0 : return 0;
+
+    angle_in_radians = math.acos(dot_product / (magnitude_v1 * magnitude_v2))
+    angle_in_degrees = math.degrees(angle_in_radians)
+    return abs(angle_in_degrees)
 
 def find_angle(a, vertex, c):
     v1, v2 = np.array(a - vertex), np.array(c - vertex)
