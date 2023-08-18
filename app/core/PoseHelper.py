@@ -9,7 +9,7 @@ from typing import List, Optional, Tuple
 from mediapipe.framework.formats import landmark_pb2
 
 
-from app.core.math.math_utility import find_xy_plane_angle,find_3d_angle
+from app.core.math.math_utility import find_3d_angle
 from app.core.math.math_utility import clamp
 import app.core.graphics.graphics_assistant as graphic
 
