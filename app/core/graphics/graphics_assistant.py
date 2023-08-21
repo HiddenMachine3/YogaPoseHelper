@@ -102,7 +102,6 @@ def draw_keypoints_on_3d_graph(
             zorder=1,
         )
 
-
 def draw_error_landmarks_2d(
     arms_and_angles,ideal_arms_and_angles,
     img: np.ndarray,
