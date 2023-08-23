@@ -197,5 +197,15 @@ class PoseHelper:
             )
     
     @staticmethod
-    def calculate_angle_differences(p1:PoseHelper,p2:PoseHelper):
-        pass
+    def calculate_angle_differences(arms_and_angles_1,arms_and_angles_2,n): # n = len(landmarks)
+        arms_and_angles_diff = [{} for _ in range(n)]
+        
+        for i in range(n):
+            if arms_and_angles_1[i] and arms_and_angles_2[i]:
+                a1 = arms_and_angles_1[i].key_set()
+                a2 = arms_and_angles_2[i].key_set()
+                for arms in a1:
+                    if arms in a2:
+                        arms_and_angles_diff[i][arms] = abs(arms_and_angles_1[i][arms] - arms_and_angles_2[i][arms])
+            
+        return arms_and_angles_diff
