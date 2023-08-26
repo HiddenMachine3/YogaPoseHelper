@@ -103,7 +103,7 @@ def draw_keypoints_on_3d_graph(
         )
 
 def draw_error_landmarks_2d(
-    arms_and_angles,ideal_arms_and_angles,
+    arms_and_angles_diff,
     img: np.ndarray,
     landmark_list: landmark_pb2.NormalizedLandmarkList,
     pronounce_error_by = 1,
@@ -120,8 +120,11 @@ def draw_error_landmarks_2d(
         return
     if img.shape[2] != _BGR_CHANNELS:
         raise ValueError('Input image must contain three channel bgr data.')
+    
     image_rows, image_cols, _ = img.shape
+
     idx_to_coordinates = {}
+
     for idx, landmark in enumerate(landmark_list.landmark):
         if ((landmark.HasField('visibility') and
              landmark.visibility < _VISIBILITY_THRESHOLD) or
@@ -144,24 +147,21 @@ def draw_error_landmarks_2d(
             if start_idx in idx_to_coordinates and end_idx in idx_to_coordinates:
 
                 left, right = 0, 0
-                # finding the difference b/w each angle at that vertex:
-                if arms_and_angles[start_idx]:
-                    for arms, angle in arms_and_angles[start_idx].items():
-                        if end_idx in arms:
-                            if arms in ideal_arms_and_angles[start_idx]:
-                                diff = abs(
-                                    ideal_arms_and_angles[start_idx][arms] - angle
-                                )
-                                left = max(left, diff / (180))
 
-                if arms_and_angles[end_idx]:
-                    for arms, angle in arms_and_angles[end_idx].items():
+                # finding the difference b/w each angle at that vertex:
+                if arms_and_angles_diff[start_idx]:
+                    for arms, diff in arms_and_angles_diff[start_idx].items():
+                        if end_idx in arms:
+                            # if arms in arms_and_angles_diff[start_idx]:
+                            # diff = arms_and_angles_diff[start_idx][arms]
+                            left = max(left, diff / (180))
+
+                if arms_and_angles_diff[end_idx]:
+                    for arms, diff in arms_and_angles_diff[end_idx].items():
                         if start_idx in arms:
-                            if arms in ideal_arms_and_angles[end_idx]:
-                                diff = abs(
-                                    ideal_arms_and_angles[end_idx][arms] - angle
-                                )
-                                right = max(right, diff / (180))
+                            # if arms in arms_and_angles_diff[end_idx]:
+                            # diff = arms_and_angles_diff[end_idx][arms]
+                            right = max(right, diff / (180))
 
                 # scaling up to pronounce errors
                 left = clamp(left * pronounce_error_by, 0, 1)
