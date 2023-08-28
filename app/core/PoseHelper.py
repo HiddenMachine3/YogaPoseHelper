@@ -207,6 +207,6 @@ class PoseHelper:
 
                 for arms in a1:
                     if arms in a2:
-                        arms_and_angles_diff[i][arms] = abs(arms_and_angles_1[i][arms] - arms_and_angles_2[i][arms])
+                        arms_and_angles_diff[i][arms] = arms_and_angles_1[i][arms] - arms_and_angles_2[i][arms]
             
         return arms_and_angles_diff
