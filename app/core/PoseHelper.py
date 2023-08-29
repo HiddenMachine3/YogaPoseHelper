@@ -202,10 +202,11 @@ class PoseHelper:
         
         for i in range(n):
             if arms_and_angles_1[i] and arms_and_angles_2[i]:
-                a1 = arms_and_angles_1[i].key_set()
-                a2 = arms_and_angles_2[i].key_set()
+                a1 = arms_and_angles_1[i].keys()
+                a2 = arms_and_angles_2[i].keys()
+
                 for arms in a1:
                     if arms in a2:
-                        arms_and_angles_diff[i][arms] = abs(arms_and_angles_1[i][arms] - arms_and_angles_2[i][arms])
+                        arms_and_angles_diff[i][arms] = arms_and_angles_1[i][arms] - arms_and_angles_2[i][arms]
             
         return arms_and_angles_diff
