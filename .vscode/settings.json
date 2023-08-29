@@ -1,5 +1,6 @@
 {
     "files.associations": {
         "stdio.h": "c"
-    }
+    },
+    "todo-tree.tree.scanMode": "workspace only"
 }
