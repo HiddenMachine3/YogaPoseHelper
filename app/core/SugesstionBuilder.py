@@ -1,12 +1,12 @@
 class SuggestionBuilder:
     needed_angles = {_ for _ in range(11, 33)} - {17,18,19,20,21,22,29,30,32,31}
     useless_arms_sets = {
-        frozenset(12, 23),
-        frozenset(11, 24),
-        frozenset(29, 31),
-        frozenset(30, 32),
-        frozenset(17, 19),
-        frozenset(20, 18),
+        frozenset({12, 23}),
+        frozenset({11, 24}),
+        frozenset({29, 31}),
+        frozenset({30, 32}),
+        frozenset({17, 19}),
+        frozenset({20, 18})
     }
 
     def __init__(self, mp_pose):
