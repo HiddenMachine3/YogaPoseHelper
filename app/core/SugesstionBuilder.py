@@ -35,7 +35,7 @@ class SuggestionBuilder:
                         continue
 
                     angles_list.append((i, angle))
-        angles_list.sort(key=lambda x: x[1])
+        # angles_list.sort(key=lambda x: x[1])
 
         txt = ""
         for landmark, angle in angles_list:
