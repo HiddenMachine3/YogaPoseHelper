@@ -41,6 +41,6 @@ class SuggestionBuilder:
         for landmark, angle in angles_list:
             if abs(angle) > angle_error_threshold:
                 # if(mp_pose.PoseLandmark(landmark).name == "RIGHT_ELBOW"):
-                txt += f"BEND {self.mp_pose.PoseLandmark(landmark).name} {'LESS' if angle<0 else 'MORE'} {angle}\n"
+                txt += f"BEND {self.mp_pose.PoseLandmark(landmark).name} {'LESS' if angle>0 else 'MORE'} {angle}\n"
 
         return txt
