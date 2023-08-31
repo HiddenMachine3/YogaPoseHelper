@@ -1,4 +1,6 @@
 class SuggestionBuilder:
+    needed_angles = {_ for _ in range(11, 33)} - {17,18,19,20,21,22,29,30,32,31}
+
     def __init__(self, mp_pose):
         self.mp_pose = mp_pose
 
@@ -15,9 +17,9 @@ class SuggestionBuilder:
         {{arm1,arm2}:a12, {arm1,arm3}:a13,{arm2,arm3}:a23}, # this is for vertex 1
         {{arm1,arm2}:a12, {arm1,arm3}:a13,{arm2,arm3}:a23},...] # and so on
         """
-        
+
         angles_list = []
-        for i in range(11, 33):  # left_shoulder to right_foot index
+        for i in self.needed_angles:  # left_shoulder to right_foot index
             if arms_and_angles_diff[i]:
                 for arms, angle in arms_and_angles_diff[i].items():
                     angles_list.append((i, angle))
