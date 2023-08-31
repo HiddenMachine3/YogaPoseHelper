@@ -34,7 +34,7 @@ class PoseHelper:
         self.results = self.pose.process(
             cv2.cvtColor(self.img, cv2.COLOR_BGR2RGB)
         )  # converting image to rgb format
-        self.norm_landmarks = []
+        self.landmarks = []
         if self.results.pose_landmarks:
             for i in range(33):
                 norm_landmark = self.results.pose_landmarks.landmark[
@@ -44,8 +44,8 @@ class PoseHelper:
                     print(f"{self.mp_pose.PoseLandmark(i).name}:\n{[norm_landmark.x *self.img_width, norm_landmark.y*self.img_height, norm_landmark.z*self.img_width]}")
                 
                 #converting normalised landmarks to image coordinates
-                self.norm_landmarks.append(
-                    np.array([norm_landmark.x, norm_landmark.y, norm_landmark.z])#np.array([norm_landmark.x *self.img_width, norm_landmark.y*self.img_height, norm_landmark.z*self.img_width])
+                self.landmarks.append(
+                    np.array([norm_landmark.x*self.img_width, norm_landmark.y*self.img_height, norm_landmark.z*self.img_width])#np.array([norm_landmark.x *self.img_width, norm_landmark.y*self.img_height, norm_landmark.z*self.img_width])
                 )
 
     def plot_keypoints2d(self, fig_title="", figsize=[5, 5]):
@@ -179,12 +179,12 @@ class PoseHelper:
 
         """
         self.arms_and_angles = self.calculate_arms_and_angles(
-            self.norm_landmarks,
+            self.landmarks,
             self.results.pose_world_landmarks,
             self.mp_pose.POSE_CONNECTIONS,
         )
 
-    def draw3dErrorDetectedSkeleton(self, idealPose, title="", pronounce_error_by=10):
+    def draw3dErrorDetectedSkeleton(self, idealPose, title="", pronounce_error_by=10,verbose=False):
         if self.results.pose_landmarks:
             graphic.plot_3d_error_graphics(
                 self.results.pose_world_landmarks,
@@ -193,7 +193,9 @@ class PoseHelper:
                 ideal_arms_and_angles=idealPose.arms_and_angles,
                 fig_title=title,
                 pronounce_error_by=pronounce_error_by,
-                plottable_landmarks=self.plottable_landmarks
+                plottable_landmarks=self.plottable_landmarks,
+                mp_pose=self.mp_pose,
+                verbose=verbose
             )
     
     @staticmethod

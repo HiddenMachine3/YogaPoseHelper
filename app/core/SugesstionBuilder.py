@@ -1,5 +1,13 @@
 class SuggestionBuilder:
     needed_angles = {_ for _ in range(11, 33)} - {17,18,19,20,21,22,29,30,32,31}
+    useless_arms_sets = {
+        frozenset(12, 23),
+        frozenset(11, 24),
+        frozenset(29, 31),
+        frozenset(30, 32),
+        frozenset(17, 19),
+        frozenset(20, 18),
+    }
 
     def __init__(self, mp_pose):
         self.mp_pose = mp_pose
@@ -22,6 +30,10 @@ class SuggestionBuilder:
         for i in self.needed_angles:  # left_shoulder to right_foot index
             if arms_and_angles_diff[i]:
                 for arms, angle in arms_and_angles_diff[i].items():
+
+                    if arms in self.useless_arms_sets:
+                        continue
+
                     angles_list.append((i, angle))
         angles_list.sort(key=lambda x: x[1])
 
@@ -30,5 +42,5 @@ class SuggestionBuilder:
             if abs(angle) > angle_error_threshold:
                 # if(mp_pose.PoseLandmark(landmark).name == "RIGHT_ELBOW"):
                 txt += f"BEND {self.mp_pose.PoseLandmark(landmark).name} {'LESS' if angle<0 else 'MORE'} {angle}\n"
-        
+
         return txt
