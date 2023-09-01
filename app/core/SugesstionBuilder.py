@@ -1,16 +1,35 @@
 class SuggestionBuilder:
-    needed_angles = {_ for _ in range(11, 33)} - {17,18,19,20,21,22,29,30,32,31}
-    useless_arms_sets = {
-        frozenset({12, 23}),
-        frozenset({11, 24}),
-        frozenset({29, 31}),
-        frozenset({30, 32}),
-        frozenset({17, 19}),
-        frozenset({20, 18})
-    }
-
     def __init__(self, mp_pose):
         self.mp_pose = mp_pose
+        self.single_joint_landmarks = {_ for _ in range(
+            11, 33)} - {17, 18, 19, 20, 21, 22, 29, 30, 32, 31} - {12, 11}
+        self.useless_arms_sets = {
+            frozenset({12, 23}),
+            frozenset({11, 24}),
+            frozenset({29, 31}),
+            frozenset({30, 32}),
+            frozenset({17, 19}),
+            frozenset({20, 18}),
+        }
+
+        self.armpit_arms_set = {
+            frozenset({14, 24}),
+            frozenset({13, 23}),
+        }
+        self.shoulder_neck_arms_set = {
+            frozenset({14, 11}),
+            frozenset({13, 12})
+        }
+
+        self.inner_thigh_arms_set = {
+            frozenset({23, 26}),
+            frozenset({24, 25})
+        }
+
+        self.outer_thigh_arms_set = {
+            frozenset({12, 26}),
+            frozenset({11, 25})
+        }
 
     def get_suggestions(self, arms_and_angles_diff, angle_error_threshold: float):
         """
@@ -27,20 +46,30 @@ class SuggestionBuilder:
         """
 
         angles_list = []
-        for i in self.needed_angles:  # left_shoulder to right_foot index
-            if arms_and_angles_diff[i]:
-                for arms, angle in arms_and_angles_diff[i].items():
+        for landmark in self.single_joint_landmarks:  # left_shoulder to right_foot index
+            if arms_and_angles_diff[landmark]:
+                for arms, angle in arms_and_angles_diff[landmark].items():
 
                     if arms in self.useless_arms_sets:
                         continue
 
-                    angles_list.append((i, angle))
+                    angles_list.append((landmark, angle))
         # angles_list.sort(key=lambda x: x[1])
-
+        # construct messages for single joint landmarks
         txt = ""
         for landmark, angle in angles_list:
             if abs(angle) > angle_error_threshold:
                 # if(mp_pose.PoseLandmark(landmark).name == "RIGHT_ELBOW"):
                 txt += f"BEND {self.mp_pose.PoseLandmark(landmark).name} {'LESS' if angle>0 else 'MORE'} {angle}\n"
+
+        # constuct messages for shoulders
+        for landmark in {12, 11}:
+            if arms_and_angles_diff[landmark]:
+                for arms, angle in arms_and_angles_diff[landmark].items():
+                    if abs(angle) > angle_error_threshold:
+                        if arms in self.armpit_arms_set:
+                            txt += f"BEND {self.mp_pose.PoseLandmark(landmark).name[:4]} arm {'MORE away from' if angle>0 else 'MORE towards'} torso {angle}\n"
+                        elif arms in self.shoulder_neck_arms_set:
+                            txt += f"BEND {self.mp_pose.PoseLandmark(landmark).name[:4]} arm {'MORE away from' if angle>0 else 'MORE towards'} neck {angle}\n"
 
         return txt
