@@ -1,8 +1,14 @@
+from mediapipe.python.solutions.pose import PoseLandmark
+
+
 class SuggestionBuilder:
     def __init__(self, mp_pose):
         self.mp_pose = mp_pose
-        self.single_joint_landmarks = {_ for _ in range(
-            11, 33)} - {17, 18, 19, 20, 21, 22, 29, 30, 32, 31} - {12, 11}
+        self.single_joint_landmarks = (
+            {_ for _ in range(11, 33)}
+            - {17, 18, 19, 20, 21, 22, 29, 30, 32, 31}
+            - {12, 11}
+        )
         self.useless_arms_sets = {
             frozenset({12, 23}),
             frozenset({11, 24}),
@@ -16,20 +22,11 @@ class SuggestionBuilder:
             frozenset({14, 24}),
             frozenset({13, 23}),
         }
-        self.shoulder_neck_arms_set = {
-            frozenset({14, 11}),
-            frozenset({13, 12})
-        }
+        self.shoulder_neck_arms_set = {frozenset({14, 11}), frozenset({13, 12})}
 
-        self.inner_thigh_arms_set = {
-            frozenset({23, 26}),
-            frozenset({24, 25})
-        }
+        self.inner_thigh_arms_set = {frozenset({23, 26}), frozenset({24, 25})}
 
-        self.outer_thigh_arms_set = {
-            frozenset({12, 26}),
-            frozenset({11, 25})
-        }
+        self.outer_thigh_arms_set = {frozenset({12, 26}), frozenset({11, 25})}
 
     def get_suggestions(self, arms_and_angles_diff, angle_error_threshold: float):
         """
@@ -46,10 +43,11 @@ class SuggestionBuilder:
         """
 
         angles_list = []
-        for landmark in self.single_joint_landmarks:  # left_shoulder to right_foot index
+        for (
+            landmark
+        ) in self.single_joint_landmarks:  # left_shoulder to right_foot index
             if arms_and_angles_diff[landmark]:
                 for arms, angle in arms_and_angles_diff[landmark].items():
-
                     if arms in self.useless_arms_sets:
                         continue
 
@@ -63,7 +61,10 @@ class SuggestionBuilder:
                 txt += f"BEND {self.mp_pose.PoseLandmark(landmark).name} {'LESS' if angle>0 else 'MORE'} {angle}\n"
 
         # constuct messages for shoulders
-        for landmark in {12, 11}:
+        for landmark in {
+            PoseLandmark.RIGHT_SHOULDER,
+            PoseLandmark.LEFT_SHOULDER,
+        }:  # These are shoulder landmarks
             if arms_and_angles_diff[landmark]:
                 for arms, angle in arms_and_angles_diff[landmark].items():
                     if abs(angle) > angle_error_threshold:

@@ -13,8 +13,8 @@ from app.core.math.math_utility import find_3d_angle
 from app.core.math.math_utility import clamp
 import app.core.graphics.graphics_assistant as graphic
 
-_PRESENCE_THRESHOLD = 0.2  # for error skeleton calculations only
-_VISIBILITY_THRESHOLD = 0.2  # for error skeleton calculations only
+_PRESENCE_THRESHOLD = 0.1  # for error skeleton calculations only
+_VISIBILITY_THRESHOLD = 0.1  # for error skeleton calculations only
 
 class PoseHelper:
     def __init__(self, img_path=None,img=None,mp_pose=None,pose=None,mp_drawing=None):
