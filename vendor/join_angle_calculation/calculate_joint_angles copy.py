@@ -53,23 +53,15 @@ index_to_keypoints = {val: key for key, val in keypoints_to_index.items()}
 def read_keypoints(filename):
     num_keypoints = 12
     fin = open(filename, "r")
-
     kpts = []
-    for i in range(2):
-        line = fin.readline()
-        if line == "":
-            break
-
-        line = line.split()
-        line = [float(s) for s in line]
-
-        line = np.reshape(line, (num_keypoints, -1))
-
-        kpts.append(line)
-    # print("before",type(kpts),len(kpts))
-    kpts = np.array(kpts)  # list to array
-    print(kpts[0])
-    # print("after",type(kpts),len(kpts))
+    # read only the first line of the file
+    line = fin.readline()
+    line = line.split()
+    line = [float(s) for s in line]
+    line = np.reshape(line, (num_keypoints, -1))
+    kpts.append(line)
+    kpts = np.array(kpts)
+    print(f"type(kpts) : {type(kpts)}\nkpts : {kpts}")
     return kpts
 
 
@@ -168,8 +160,11 @@ def get_bone_lengths(kpts):
         _bone = joint_kpts - parent_kpts
         _bone_lengths = np.sqrt(np.sum(np.square(_bone), axis=-1))
 
-        _bone_length = np.median(_bone_lengths)
-        bone_lengths[joint] = _bone_length
+        # _bone_length = np.median(_bone_lengths)
+        print(
+            f"joint : {joint} parent: {parent}, kpts[joint] : {kpts[joint]},  kpts[parent] : {kpts[parent]}"
+        )
+        bone_lengths[joint] = _bone_lengths  # _bone_length
 
         # plt.hist(bone_lengths, bins = 25)
         # plt.title(joint)
@@ -207,6 +202,7 @@ def get_base_skeleton(kpts, normalization_bone="neck"):
 
     # set bone normalization length. Set to 1 if you dont want normalization
     normalization = kpts["bone_lengths"][normalization_bone]
+    # print(f"normalization : {normalization}")
     # normalization = 1
 
     # base skeleton set by multiplying offset directions by measured bone lengths. In this case we use the average of two sided limbs. E.g left and right hip averaged
@@ -483,13 +479,11 @@ if __name__ == "__main__":
         for kpt_num in range(kpts.shape[1]):
             kpts[framenum, kpt_num] = R @ kpts[framenum, kpt_num]
 
-    # print(f"kpts : {kpts}")
-
     kpts = convert_to_dictionary(kpts)
     add_hips_and_neck(kpts)
-    # print(f"kpts : {kpts}")
+    print("kpts :", kpts)
     filtered_kpts = kpts # median_filter(kpts)
-    # print(f"filtered_kpts : {filtered_kpts}")
+    print("filtered_kpts :", filtered_kpts)
     get_bone_lengths(filtered_kpts)
     get_base_skeleton(filtered_kpts)
 
@@ -497,6 +491,4 @@ if __name__ == "__main__":
     # draw_skeleton_from_joint_coordinates(filtered_kpts)
     draw_skeleton_from_joint_angles(filtered_kpts)
     for key in mediapipe_landmark_names_map.keys():
-        print(
-            filtered_kpts[mediapipe_landmark_names_map[key] + "_angles"][-1]
-        )
+        print(filtered_kpts[mediapipe_landmark_names_map[key] + "_angles"][0])
