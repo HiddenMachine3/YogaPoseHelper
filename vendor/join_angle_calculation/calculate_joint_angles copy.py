@@ -3,6 +3,7 @@ import sys
 import utils
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+import mediapipe as mp
 
 needed_landmarks = {
     "LEFT_HIP",
@@ -46,8 +47,35 @@ mediapipe_landmark_names_map = {
     "RIGHT_SHOULDER": "rightshoulder",
     "RIGHT_ELBOW": "rightelbow",
     "RIGHT_WRIST": "rightwrist",
+    "lefthip": "LEFT_HIP",
+    "leftknee": "LEFT_KNEE",
+    "leftfoot": "LEFT_ANKLE",
+    "righthip": "RIGHT_HIP",
+    "rightknee": "RIGHT_KNEE",
+    "rightfoot": "RIGHT_ANKLE",
+    "leftshoulder": "LEFT_SHOULDER",
+    "leftelbow": "LEFT_ELBOW",
+    "leftwrist": "LEFT_WRIST",
+    "rightshoulder": "RIGHT_SHOULDER",
+    "rightelbow": "RIGHT_ELBOW",
+    "rightwrist": "RIGHT_WRIST",
 }
 index_to_keypoints = {val: key for key, val in keypoints_to_index.items()}
+
+needed_mp_landmark_indices = sorted(
+    [mp.solutions.pose.PoseLandmark[name].value for name in needed_landmarks],
+    key=lambda x: keypoints_to_index[
+        mediapipe_landmark_names_map[mp.solutions.pose.PoseLandmark(x).name]
+    ],
+)
+
+
+def landmarks_to_kpts(landmarks: list):
+    # selecting the needed 12 features and reshaping the numpy array to
+    # be compatible with the rest of the code
+    return np.array(landmarks)[needed_mp_landmark_indices].reshape(
+        (1, len(needed_mp_landmark_indices), 3)
+    )
 
 
 def read_keypoints(filename):
@@ -464,14 +492,52 @@ def draw_skeleton_from_joint_angles(kpts):
         ax.set_ylabel("y")
         ax.set_zlim3d(-4, 4)
         ax.set_zlabel("z")
-        plt.pause(0.01)
+        plt.pause(10)
         ax.cla()
     plt.close()
 
 
-if __name__ == "__main__":
+def get_angle_deviations(landmarks: list):
+    global needed_mp_landmark_indices
+
+    kpts = landmarks_to_kpts(landmarks)
+
+    # if kpts.ndim != 3:
+    #     kpts = keypoints[np.newaxis,:,:]
+
+    # rotate to orient the pose better
+    R = utils.get_R_z(np.pi / 2)
+    for framenum in range(kpts.shape[0]):
+        for kpt_num in range(kpts.shape[1]):
+            kpts[framenum, kpt_num] = R @ kpts[framenum, kpt_num]
+
+    kpts = convert_to_dictionary(kpts)
+    add_hips_and_neck(kpts)
+    # print("kpts :", kpts)
+    filtered_kpts = kpts  # median_filter(kpts)
+    # print("filtered_kpts :", filtered_kpts)
+    get_bone_lengths(filtered_kpts)
+    get_base_skeleton(filtered_kpts)
+
+    calculate_joint_angles(filtered_kpts)
+    draw_skeleton_from_joint_angles(filtered_kpts)
+    # for key in needed_landmarks.keys():
+    #     print(filtered_kpts[mediapipe_landmark_names_map[key] + "_angles"][0])
+
+    angles = [np.array([0, 0, 0]) for _ in range(33)]
+    for i in range(33):
+        keypoint_name = mediapipe_landmark_names_map.get(
+            mp.solutions.pose.PoseLandmark(i).name, None
+        )
+        if keypoint_name:
+            angles[i] = filtered_kpts[keypoint_name + "_angles"][0]
+    return angles
+
+
+def calc_example_angles():
     filename = "vendor/join_angle_calculation/kpts_3d.dat"  # sys.argv[1]
     kpts = read_keypoints(filename)
+    print(np.shape(kpts))
 
     # rotate to orient the pose better
     R = utils.get_R_z(np.pi / 2)
@@ -482,7 +548,7 @@ if __name__ == "__main__":
     kpts = convert_to_dictionary(kpts)
     add_hips_and_neck(kpts)
     print("kpts :", kpts)
-    filtered_kpts = kpts # median_filter(kpts)
+    filtered_kpts = kpts  # median_filter(kpts)
     print("filtered_kpts :", filtered_kpts)
     get_bone_lengths(filtered_kpts)
     get_base_skeleton(filtered_kpts)
@@ -490,5 +556,58 @@ if __name__ == "__main__":
     calculate_joint_angles(filtered_kpts)
     # draw_skeleton_from_joint_coordinates(filtered_kpts)
     draw_skeleton_from_joint_angles(filtered_kpts)
-    for key in mediapipe_landmark_names_map.keys():
+    for key in needed_landmarks.keys():
         print(filtered_kpts[mediapipe_landmark_names_map[key] + "_angles"][0])
+
+
+if __name__ == "__main__":
+    landmarks = [
+        np.array([143.73686379, 106.64321381, -118.98162383]),
+        np.array([151.67757928, 95.94112271, -94.31096902]),
+        np.array([155.61486709, 96.53626353, -94.51458403]),
+        np.array([161.20302039, 97.06428748, -94.44981048]),
+        np.array([136.99421456, 94.93629462, -92.11133316]),
+        np.array([132.98771688, 95.11934221, -92.36583927]),
+        np.array([129.48359382, 95.65558201, -92.52392724]),
+        np.array([164.92247337, 102.4761588, 33.3375616]),
+        np.array([123.14177316, 100.63422346, 42.92056304]),
+        np.array([153.13434339, 116.90352058, -69.12819827]),
+        np.array([136.49337494, 116.46072042, -68.54784235]),
+        np.array([202.20917052, 167.90898108, 85.01194018]),
+        np.array([89.65446699, 171.84392512, 103.63114205]),
+        np.array([244.33146691, 240.83276457, -31.3092615]),
+        np.array([54.43311021, 249.55312622, -36.58009605]),
+        np.array([164.88345742, 221.21436125, -234.9220953]),
+        np.array([135.4505122, 217.55800742, -264.73584664]),
+        np.array([151.55946875, 201.09956765, -281.54922408]),
+        np.array([140.53550652, 197.1583147, -318.17035604]),
+        np.array([153.39623773, 194.74706233, -268.39659858]),
+        np.array([141.92497528, 191.07645106, -299.97637403]),
+        np.array([155.90400344, 202.34812653, -232.42249376]),
+        np.array([142.96275228, 199.53235519, -263.59810919]),
+        np.array([177.18692517, 330.08618975, 2.31146962]),
+        np.array([108.17027575, 330.19825315, -2.51229954]),
+        np.array([166.92942476, 465.86726189, -13.37592138]),
+        np.array([114.44653004, 466.41104031, -28.72384132]),
+        np.array([163.20486075, 576.21557212, 197.78414118]),
+        np.array([117.12939522, 577.27557647, 147.40326655]),
+        np.array([158.32305974, 588.71684408, 211.49430847]),
+        np.array([122.16791788, 589.24675715, 159.52594185]),
+        np.array([161.66291267, 619.78735065, 45.59251876]),
+        np.array([123.13942006, 620.72477674, -9.09259264]),
+    ]
+    # print(landmarks)
+    # kpts = landmarks_to_kpts(landmarks)
+    # print(kpts)
+
+    angles = get_angle_deviations(landmarks)
+    i = 0
+    for angle in angles:
+        print(angle, mp.solutions.pose.PoseLandmark(i).name)
+        i += 1
+
+        # else:
+        #     angles[i] = np.array([0,0,0])
+
+    # for key in needed_landmarks.keys():
+    #     print(filtered_kpts[mediapipe_landmark_names_map[key] + "_angles"][0])
