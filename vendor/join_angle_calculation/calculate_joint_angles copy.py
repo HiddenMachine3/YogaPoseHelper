@@ -639,7 +639,7 @@ if __name__ == "__main__":
         [647.5916553139687, 1437.8804158568382, 456.47005277872086],
         [613.6146661043167, 1452.3218747377396, 355.54287126660347],
         [666.2721348404884, 1502.10920804739, 81.6930805966258],
-        [621.7734513878822, 1518.5699897408485, -38.35371723771095]
+        [621.7734513878822, 1518.5699897408485, -38.35371723771095],
     ]
 
     my_angles = get_angle_deviations(my_landmarks)
@@ -647,11 +647,12 @@ if __name__ == "__main__":
     for angle in my_angles:
         print(angle, mp.solutions.pose.PoseLandmark(i).name)
         i += 1
-    
+
     deviations = [ideal_angles[i] - my_angles[i] for i in range(33)]
     for i in range(33):
-        print(deviations[i], mp.solutions.pose.PoseLandmark(i).name)
+        print(np.linalg.norm(deviations[i]), mp.solutions.pose.PoseLandmark(i).name)
         i += 1
+
     # else:
     #     angles[i] = np.array([0,0,0])
 
