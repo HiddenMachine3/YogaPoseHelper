@@ -14,18 +14,25 @@ from app.core.math.math_utility import clamp
 import app.core.graphics.graphics_assistant as graphic
 
 _PRESENCE_THRESHOLD = 0.1  # for error skeleton calculations only
-_VISIBILITY_THRESHOLD = 0.1  # for error skeleton calculations only
+_VISIBILITY_THRESHOLD = 0.7  # for error skeleton calculations only
+
 
 class PoseHelper:
-    def __init__(self, img_path=None,img=None,mp_pose=None,pose=None,mp_drawing=None):
+    def __init__(
+        self, img_path=None, img=None, mp_pose=None, pose=None, mp_drawing=None
+    ):
         self.img = cv2.imread(img_path) if (img is None) else img
         self.mp_pose = mp.solutions.pose if not mp_pose else mp_pose
-        self.pose = self.mp_pose.Pose(
-            static_image_mode=True, min_detection_confidence=0.3, model_complexity=2
-        ) if not pose else pose
+        self.pose = (
+            self.mp_pose.Pose(
+                static_image_mode=True, min_detection_confidence=0.3, model_complexity=2
+            )
+            if not pose
+            else pose
+        )
         self.mp_drawing = mp.solutions.drawing_utils if not mp_drawing else mp_drawing
         self.plottable_landmarks = {}
-        self.img_height,self.img_width, _ =self.img.shape
+        self.img_height, self.img_width, _ = self.img.shape
 
     def display_img(self, fig_size, fig_title):
         graphic.display_image(self.img, fig_size, fig_title)
@@ -41,12 +48,22 @@ class PoseHelper:
                     self.mp_pose.PoseLandmark(i).value
                 ]
                 if verbose:
-                    print(f"{self.mp_pose.PoseLandmark(i).name}:\n{[norm_landmark.x *self.img_width, norm_landmark.y*self.img_height, norm_landmark.z*self.img_width]}")
-                
-                #converting normalised landmarks to image coordinates
+                    print(
+                        f"{self.mp_pose.PoseLandmark(i).name}:\n{[norm_landmark.x *self.img_width, norm_landmark.y*self.img_height, norm_landmark.z*self.img_width]}"
+                    )
+
+                # converting normalised landmarks to image coordinates
+                # NOTE: MAKE SURE THE IMAGE IN THE IDEAL AND TEST inputs HAVE THE SAME SIZE(width and height)
                 self.landmarks.append(
-                    np.array([norm_landmark.x*self.img_width, norm_landmark.y*self.img_height, norm_landmark.z*self.img_width])#np.array([norm_landmark.x *self.img_width, norm_landmark.y*self.img_height, norm_landmark.z*self.img_width])
+                    np.array(
+                        [
+                            norm_landmark.x * self.img_width * self.img_width,
+                            norm_landmark.y * self.img_height * self.img_height,
+                            norm_landmark.z * self.img_width * self.img_width,
+                        ]
+                    )  # np.array([norm_landmark.x*self.img_width, norm_landmark.y*self.img_height, norm_landmark.z*self.img_width])#
                 )
+                # self.norm_landmarks.append(np.array())
 
     def plot_keypoints2d(self, fig_title="", figsize=[5, 5]):
         img_copy = self.img.copy()
@@ -82,8 +99,8 @@ class PoseHelper:
         # # # LOOPING THROUGH EACH LANDMARK
         for idx, landmark in enumerate(landmark_list.landmark):
             if (
-                landmark and
-                landmark.HasField("visibility")
+                landmark
+                and landmark.HasField("visibility")
                 and landmark.visibility < _VISIBILITY_THRESHOLD
             ) or (
                 landmark.HasField("presence")
@@ -130,7 +147,7 @@ class PoseHelper:
         angle between every group of arm-vertex-arm
         """
         # print(landmarks)
-        for vertex in range(33):#len(connected_points)):
+        for vertex in range(33):  # len(connected_points)):
             points = list(connected_points[vertex])
 
             num_connections = len(points)
@@ -158,8 +175,6 @@ class PoseHelper:
 
         return arms_and_angles
 
-    
-
     def calculate_angles(self):
         """
         for each vertex, it calculates which sets of 2 arms are connected, and the angles b/w these 2 arms for each set
@@ -184,7 +199,9 @@ class PoseHelper:
             self.mp_pose.POSE_CONNECTIONS,
         )
 
-    def draw3dErrorDetectedSkeleton(self, idealPose, title="", pronounce_error_by=10,verbose=False):
+    def draw3dErrorDetectedSkeleton(
+        self, idealPose, title="", pronounce_error_by=10, verbose=False
+    ):
         if self.results.pose_landmarks:
             graphic.plot_3d_error_graphics(
                 self.results.pose_world_landmarks,
@@ -195,13 +212,15 @@ class PoseHelper:
                 pronounce_error_by=pronounce_error_by,
                 plottable_landmarks=self.plottable_landmarks,
                 mp_pose=self.mp_pose,
-                verbose=verbose
+                verbose=verbose,
             )
-    
+
     @staticmethod
-    def calculate_angle_differences(arms_and_angles_1,arms_and_angles_2,n): # n = len(landmarks)
+    def calculate_angle_differences(
+        arms_and_angles_1, arms_and_angles_2, n
+    ):  # n = len(landmarks)
         arms_and_angles_diff = [{} for _ in range(n)]
-        
+
         for i in range(n):
             if arms_and_angles_1[i] and arms_and_angles_2[i]:
                 a1 = arms_and_angles_1[i].keys()
@@ -209,6 +228,8 @@ class PoseHelper:
 
                 for arms in a1:
                     if arms in a2:
-                        arms_and_angles_diff[i][arms] = arms_and_angles_1[i][arms] - arms_and_angles_2[i][arms]
-            
+                        arms_and_angles_diff[i][arms] = (
+                            arms_and_angles_1[i][arms] - arms_and_angles_2[i][arms]
+                        )
+
         return arms_and_angles_diff
