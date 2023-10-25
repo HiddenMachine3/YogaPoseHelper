@@ -56,6 +56,7 @@ class SuggestionBuilder:
         # construct messages for single joint landmarks
         txt = ""
         for landmark, angle in angles_list:
+            
             if abs(angle) > angle_error_threshold:
                 # if(mp_pose.PoseLandmark(landmark).name == "RIGHT_ELBOW"):
                 txt += f"BEND {self.mp_pose.PoseLandmark(landmark).name} {'LESS' if angle>0 else 'MORE'} {angle}\n"

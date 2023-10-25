@@ -14,7 +14,7 @@ from app.core.math.math_utility import clamp
 import app.core.graphics.graphics_assistant as graphic
 
 _PRESENCE_THRESHOLD = 0.1  # for error skeleton calculations only
-_VISIBILITY_THRESHOLD = 0.7  # for error skeleton calculations only
+_VISIBILITY_THRESHOLD = 0.1  # for error skeleton calculations only
 
 
 class PoseHelper:
@@ -90,13 +90,16 @@ class PoseHelper:
         landmark_list: landmark_pb2.NormalizedLandmarkList,
         connections: Optional[List[Tuple[int, int]]] = None,
     ):
-        # {i:set() for i in range(len(landmarks))}
-        arms_and_angles = [None for _ in range(len(landmarks))]
+        
 
-        # each index of connected_points is a vertex on the skeleton, and contains a set of which points are connected to it
-        connected_points = [set() for _ in range(len(landmarks))]
+        # TODO : REMOVE BELOW COMMENTED CODE
+        # # each index of connected_points is a vertex on the skeleton, and contains a set of which points are connected to it
+        # connected_points = [set() for _ in range(len(landmarks))]
+        # {i:set() for i in range(len(landmarks))}
+        # arms_and_angles = [None for _ in range(len(landmarks))]
 
         # # # LOOPING THROUGH EACH LANDMARK
+        
         for idx, landmark in enumerate(landmark_list.landmark):
             if (
                 landmark
@@ -110,34 +113,35 @@ class PoseHelper:
 
             self.plottable_landmarks[idx] = (-landmark.z, landmark.x, -landmark.y)
 
-        if connections:
-            num_landmarks = len(landmark_list.landmark)
+        # TODO : REMOVE BELOW COMMENTED CODE
+        # if connections:
+        #     num_landmarks = len(landmark_list.landmark)
 
-            for connection in connections:
-                start_idx = connection[0]
-                end_idx = connection[1]
+        #     for connection in connections:
+        #         start_idx = connection[0]
+        #         end_idx = connection[1]
 
-                if not (
-                    0 <= start_idx < num_landmarks and 0 <= end_idx < num_landmarks
-                ):
-                    raise ValueError(
-                        f"Landmark index is out of range. Invalid connection "
-                        f"from landmark #{start_idx} to landmark #{end_idx}."
-                    )
-                if (
-                    start_idx in self.plottable_landmarks
-                    and end_idx in self.plottable_landmarks
-                ):
-                    try:
-                        # add each other the other's 'connected points' set
-                        # print(start_idx,end_idx,f"{'same!' if start_idx == end_idx else ''}")
-                        connected_points[start_idx].add(end_idx)
-                        connected_points[end_idx].add(start_idx)
-                    except IndexError as e:
-                        print(e)
-                        print(
-                            f"start_idx:{start_idx},end_idx:{end_idx},len(connected_points):{len(connected_points)}"
-                        )
+        #         if not (
+        #             0 <= start_idx < num_landmarks and 0 <= end_idx < num_landmarks
+        #         ):
+        #             raise ValueError(
+        #                 f"Landmark index is out of range. Invalid connection "
+        #                 f"from landmark #{start_idx} to landmark #{end_idx}."
+        #             )
+        #         if (
+        #             start_idx in self.plottable_landmarks
+        #             and end_idx in self.plottable_landmarks
+        #         ):
+        #             try:
+        #                 # add each other the other's 'connected points' set
+        #                 # print(start_idx,end_idx,f"{'same!' if start_idx == end_idx else ''}")
+        #                 connected_points[start_idx].add(end_idx)
+        #                 connected_points[end_idx].add(start_idx)
+        #             except IndexError as e:
+        #                 print(e)
+        #                 print(
+        #                     f"start_idx:{start_idx},end_idx:{end_idx},len(connected_points):{len(connected_points)}"
+        #                 )
 
         # now we got a set of connected points for each landmark,
         # lets figure out the angles for every set of 3 connected points (1 vertex and 2 arms, ex: L)
@@ -147,31 +151,78 @@ class PoseHelper:
         angle between every group of arm-vertex-arm
         """
         # print(landmarks)
-        for vertex in range(33):  # len(connected_points)):
-            points = list(connected_points[vertex])
+        # for vertex in range(33):  # len(connected_points)):
+        #     points = list(connected_points[vertex])
 
-            num_connections = len(points)
-            if num_connections > 1:
-                angles = []
-                arms = []
-                for i in range(num_connections - 1):
-                    for j in range(i + 1, num_connections):
-                        try:
-                            # print(landmarks[points[i]],landmarks[vertex],landmarks[points[j]])
+        #     num_connections = len(points)
+        #     if num_connections > 1:
+        #         angles = []
+        #         arms = []
+        #         for i in range(num_connections - 1):
+        #             for j in range(i + 1, num_connections):
+        #                 try:
+        #                     # print(landmarks[points[i]],landmarks[vertex],landmarks[points[j]])
 
-                            angle = find_3d_angle(
-                                landmarks[points[i]],
-                                landmarks[vertex],
-                                landmarks[points[j]],
-                            )
-                            angles.append(angle)
-                            arms.append(frozenset({points[i], points[j]}))
-                        except IndexError as e:
-                            print(
-                                f"i:{i},j:{j},len(points):{len(points)},len(landmarks):{len(landmarks)},points[i]:{points[i]},points[j]:{points[j]}"
-                            )
-                # have to convert arms set to a frozenset because keys have to be of immutable type
-                arms_and_angles[vertex] = dict(zip(arms, angles))
+        #                     angle = find_3d_angle(
+        #                         landmarks[points[i]],
+        #                         landmarks[vertex],
+        #                         landmarks[points[j]],
+        #                     )
+        #                     angles.append(angle)
+        #                     arms.append(frozenset({points[i], points[j]}))
+        #                 except IndexError as e:
+        #                     print(
+        #                         f"i:{i},j:{j},len(points):{len(points)},len(landmarks):{len(landmarks)},points[i]:{points[i]},points[j]:{points[j]}"
+        #                     )
+        #         # have to convert arms set to a frozenset because keys have to be of immutable type
+        #         arms_and_angles[vertex] = dict(zip(arms, angles))
+
+        from vendor.join_angle_calculation.joint_angle_calculator import get_angle_deviations
+
+        # angles = get_angles() # numpy array of 33 angles at eafch joint
+        # TODO : REFACTOR THIS CODE, cause this is a very hacky solution since I didn't have time
+        # there is a much more elegant way of doing this
+        # print(landmark_list.landmark)
+        angles = get_angle_deviations(landmarks)
+        from mediapipe.python.solutions.pose import PoseLandmark
+        
+        arms_and_angles = [{},#NOSE = 0
+         {},#  LEFT_EYE_INNER = 1
+         {},#  LEFT_EYE = 2
+         {},#  LEFT_EYE_OUTER = 3
+         {},#  RIGHT_EYE_INNER = 4
+         {},#  RIGHT_EYE = 5
+         {},#  RIGHT_EYE_OUTER = 6
+         {},#  LEFT_EAR = 7
+         {},#  RIGHT_EAR = 8
+         {},#  MOUTH_LEFT = 9
+         {},#  MOUTH_RIGHT = 10
+         {frozenset({PoseLandmark.LEFT_ELBOW,PoseLandmark.RIGHT_SHOULDER}):np.array([0,0,0])},#  LEFT_SHOULDER = 11
+         {frozenset({PoseLandmark.RIGHT_ELBOW,PoseLandmark.LEFT_SHOULDER}):np.array([0,0,0])},#  RIGHT_SHOULDER = 12
+         {frozenset({PoseLandmark.LEFT_SHOULDER,PoseLandmark.LEFT_WRIST}):np.array([0,0,0])},#  LEFT_ELBOW = 13
+         {frozenset({PoseLandmark.RIGHT_SHOULDER,PoseLandmark.RIGHT_WRIST}):np.array([0,0,0])},#  RIGHT_ELBOW = 14
+         {},#actually need, but will implement later#  LEFT_WRIST = 15
+         {},#actually need, but will implement later#  RIGHT_WRIST = 16
+         {},#  LEFT_PINKY = 17
+         {},#  RIGHT_PINKY = 18
+         {},#  LEFT_INDEX = 19
+         {},#  RIGHT_INDEX = 20
+         {},#  LEFT_THUMB = 21
+         {},#  RIGHT_THUMB = 22
+         {frozenset({PoseLandmark.LEFT_KNEE,PoseLandmark.RIGHT_HIP}):np.array([0,0,0])},#  LEFT_HIP = 23
+         {frozenset({PoseLandmark.RIGHT_KNEE,PoseLandmark.LEFT_HIP}):np.array([0,0,0])},#  RIGHT_HIP = 24
+         {frozenset({PoseLandmark.LEFT_HIP,PoseLandmark.LEFT_ANKLE}):np.array([0,0,0])},#  LEFT_KNEE = 25
+         {frozenset({PoseLandmark.RIGHT_HIP,PoseLandmark.RIGHT_ANKLE}):np.array([0,0,0])},#  RIGHT_KNEE = 26
+         {},#  LEFT_ANKLE = 27
+         {},#  RIGHT_ANKLE = 28
+         {},#  LEFT_HEEL = 29
+         {},#  RIGHT_HEEL = 30
+         {},#  LEFT_FOOT_INDEX = 31
+         {}]#  RIGHT_FOOT_INDEX = 32
+
+        for i in range(33):
+            if arms_and_angles[i]:
+                arms_and_angles[i][list(arms_and_angles[i].keys())[0]] = angles[i]
 
         return arms_and_angles
 

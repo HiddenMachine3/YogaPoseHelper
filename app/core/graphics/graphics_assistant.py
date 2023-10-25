@@ -169,6 +169,7 @@ def draw_error_landmarks_2d(
                 )
             if start_idx in idx_to_coordinates and end_idx in idx_to_coordinates:
                 left, right = 0, 0
+                MAX_VECTOR_LEN = np.linalg.norm(np.array([np.pi, np.pi, np.pi]))
 
                 # finding the difference b/w each angle at that vertex:
                 if arms_and_angles_diff[start_idx]:
@@ -176,14 +177,14 @@ def draw_error_landmarks_2d(
                         if end_idx in arms:
                             # if arms in arms_and_angles_diff[start_idx]:
                             # diff = arms_and_angles_diff[start_idx][arms]
-                            left = max(left, abs(diff) / (180))
+                            left = max(left, np.linalg.norm(diff) / (MAX_VECTOR_LEN))
 
                 if arms_and_angles_diff[end_idx]:
                     for arms, diff in arms_and_angles_diff[end_idx].items():
                         if start_idx in arms:
                             # if arms in arms_and_angles_diff[end_idx]:
                             # diff = arms_and_angles_diff[end_idx][arms]
-                            right = max(right, abs(diff) / (180))
+                            right = max(right, np.linalg.norm(diff) / (MAX_VECTOR_LEN))
 
                 # scaling up to pronounce errors
                 left = clamp(left * pronounce_error_by, 0, 1)
@@ -305,22 +306,30 @@ def plot_3d_error_graphics(
                 ]
 
                 left, right = 0, 0
+
+                MAX_VECTOR_LEN = np.linalg.norm(np.array([np.pi, np.pi, np.pi]))
                 # finding the difference b/w each angle at that vertex:
                 if arms_and_angles[start_idx]:
                     for arms, angle in arms_and_angles[start_idx].items():
                         if end_idx in arms:
                             if arms in ideal_arms_and_angles[start_idx]:
-                                diff = abs(
+                                diff = np.linalg.norm(
                                     ideal_arms_and_angles[start_idx][arms] - angle
                                 )
-                                left = max(left, diff / (180))
+                                # diff = abs(
+                                #     ideal_arms_and_angles[start_idx][arms] - angle
+                                # )
+                                left = max(left, diff / (MAX_VECTOR_LEN))
 
                 if arms_and_angles[end_idx]:
                     for arms, angle in arms_and_angles[end_idx].items():
                         if start_idx in arms:
                             if arms in ideal_arms_and_angles[end_idx]:
-                                diff = abs(ideal_arms_and_angles[end_idx][arms] - angle)
-                                right = max(right, diff / (180))
+                                diff = np.linalg.norm(
+                                    ideal_arms_and_angles[end_idx][arms] - angle
+                                )
+                                # diff = abs(ideal_arms_and_angles[end_idx][arms] - angle)
+                                right = max(right, diff / (MAX_VECTOR_LEN))
 
                 # scaling up to pronounce errors
                 left = clamp(left * pronounce_error_by, 0, 1)
@@ -353,7 +362,7 @@ def plot_3d_error_graphics(
                 pos[0],
                 pos[1],
                 pos[2],
-                s=f"{idx}:{arms_and_angles[idx]}" # + label # + ":" + str((arms_and_angles[idx]))
+                s=f"{idx}:{arms_and_angles[idx]}"  # + label # + ":" + str((arms_and_angles[idx]))
                 if arms_and_angles[idx]
                 else label,
                 fontsize=font_size,

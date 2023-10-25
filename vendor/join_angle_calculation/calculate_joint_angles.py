@@ -468,7 +468,7 @@ def draw_skeleton_from_joint_angles(kpts):
         ax.set_ylabel("y")
         ax.set_zlim3d(-4, 4)
         ax.set_zlabel("z")
-        plt.pause(0.01)
+        plt.pause(0.1)
         ax.cla()
     plt.close()
 
@@ -478,17 +478,17 @@ if __name__ == "__main__":
     kpts = read_keypoints(filename)
 
     # rotate to orient the pose better
-    R = utils.get_R_z(np.pi / 2)
-    for framenum in range(kpts.shape[0]):
-        for kpt_num in range(kpts.shape[1]):
-            kpts[framenum, kpt_num] = R @ kpts[framenum, kpt_num]
+    # R = utils.get_R_z(np.pi / 2)
+    # for framenum in range(kpts.shape[0]):
+    #     for kpt_num in range(kpts.shape[1]):
+    #         kpts[framenum, kpt_num] = R @ kpts[framenum, kpt_num]
 
     # print(f"kpts : {kpts}")
 
     kpts = convert_to_dictionary(kpts)
     add_hips_and_neck(kpts)
     # print(f"kpts : {kpts}")
-    filtered_kpts = kpts # median_filter(kpts)
+    filtered_kpts = kpts  # median_filter(kpts)
     # print(f"filtered_kpts : {filtered_kpts}")
     get_bone_lengths(filtered_kpts)
     get_base_skeleton(filtered_kpts)
@@ -497,6 +497,33 @@ if __name__ == "__main__":
     # draw_skeleton_from_joint_coordinates(filtered_kpts)
     draw_skeleton_from_joint_angles(filtered_kpts)
     for key in mediapipe_landmark_names_map.keys():
-        print(
-            filtered_kpts[mediapipe_landmark_names_map[key] + "_angles"][-1]
-        )
+        print(key, filtered_kpts[mediapipe_landmark_names_map[key] + "_angles"][-1])
+
+"""
+LEFT_HIP [ 0.01859428 -0.09976973  0.00092837]
+LEFT_KNEE [ 0.30352844  0.95930069 -0.15877436]
+LEFT_ANKLE [0. 0. 0.]
+RIGHT_HIP [-0.207071   -0.2047464  -0.02134842]
+RIGHT_KNEE [ 0.27710057  0.47853173 -0.06800522]
+RIGHT_ANKLE [0. 0. 0.]
+LEFT_SHOULDER [-1.26144392 -0.0249903   0.03422137]
+LEFT_ELBOW [-0.19227295  0.04280287 -0.43684338]
+LEFT_WRIST [0. 0. 0.]
+RIGHT_SHOULDER [ 1.26353037 -0.01720838 -0.02351394]
+RIGHT_ELBOW [0.04096082 0.00656374 0.31774458]
+RIGHT_WRIST [0. 0. 0.]
+
+LEFT_HIP [ 0.01859428 -0.09976973  0.00092837]
+LEFT_KNEE [ 0.30352844  0.95930069 -0.15877436]
+LEFT_ANKLE [0. 0. 0.]
+RIGHT_HIP [-0.207071   -0.2047464  -0.02134842]
+RIGHT_KNEE [ 0.27710057  0.47853173 -0.06800522]
+RIGHT_ANKLE [0. 0. 0.]
+LEFT_SHOULDER [-1.26144392 -0.0249903   0.03422137]
+LEFT_ELBOW [-0.19227295  0.04280287 -0.43684338]
+LEFT_WRIST [0. 0. 0.]
+RIGHT_SHOULDER [ 1.26353037 -0.01720838 -0.02351394]
+RIGHT_ELBOW [0.04096082 0.00656374 0.31774458]
+RIGHT_WRIST [0. 0. 0.]
+
+"""
