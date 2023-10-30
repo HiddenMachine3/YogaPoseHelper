@@ -177,14 +177,14 @@ def draw_error_landmarks_2d(
                         if end_idx in arms:
                             # if arms in arms_and_angles_diff[start_idx]:
                             # diff = arms_and_angles_diff[start_idx][arms]
-                            left = max(left, np.linalg.norm(diff) / (MAX_VECTOR_LEN))
+                            left = max(left, (abs(diff[0])+abs(diff[1])+abs(diff[2])) / (np.pi))
 
                 if arms_and_angles_diff[end_idx]:
                     for arms, diff in arms_and_angles_diff[end_idx].items():
                         if start_idx in arms:
                             # if arms in arms_and_angles_diff[end_idx]:
                             # diff = arms_and_angles_diff[end_idx][arms]
-                            right = max(right, np.linalg.norm(diff) / (MAX_VECTOR_LEN))
+                            right = max(right, (abs(diff[0])+abs(diff[1])+abs(diff[2])) / (np.pi))
 
                 # scaling up to pronounce errors
                 left = clamp(left * pronounce_error_by, 0, 1)

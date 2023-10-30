@@ -57,9 +57,9 @@ class PoseHelper:
                 self.landmarks.append(
                     np.array(
                         [
-                            norm_landmark.x * self.img_width * self.img_width,
-                            norm_landmark.y * self.img_height * self.img_height,
-                            norm_landmark.z * self.img_width * self.img_width,
+                            norm_landmark.x * self.img_width, # 
+                            norm_landmark.y * self.img_height, # 
+                            0 # norm_landmark.z, # * self.img_width
                         ]
                     )  # np.array([norm_landmark.x*self.img_width, norm_landmark.y*self.img_height, norm_landmark.z*self.img_width])#
                 )

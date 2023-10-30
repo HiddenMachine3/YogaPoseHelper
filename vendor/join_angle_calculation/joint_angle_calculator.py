@@ -189,9 +189,9 @@ def get_bone_lengths(kpts):
         _bone_lengths = np.sqrt(np.sum(np.square(_bone), axis=-1))
 
         # _bone_length = np.median(_bone_lengths)
-        print(
-            f"joint : {joint} parent: {parent}, kpts[joint] : {kpts[joint]},  kpts[parent] : {kpts[parent]}"
-        )
+        # print(
+        #     f"joint : {joint} parent: {parent}, kpts[joint] : {kpts[joint]},  kpts[parent] : {kpts[parent]}"
+        # )
         bone_lengths[joint] = _bone_lengths  # _bone_length
 
         # plt.hist(bone_lengths, bins = 25)
