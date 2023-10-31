@@ -1,9 +1,25 @@
 from mediapipe.python.solutions.pose import PoseLandmark
-
-
+import numpy as np
+import mediapipe as mp
 class SuggestionBuilder:
-    def __init__(self, mp_pose):
-        self.mp_pose = mp_pose
+    def __init__(self):
+        self.mp_pose = mp.solutions.pose
+
+    def get_suggestions(self, arms_and_angles_diff, angle_error_threshold: float):
+        txt = ""
+        for i in range(33):
+            if arms_and_angles_diff[i]:
+                diff = arms_and_angles_diff[i][list(arms_and_angles_diff[i].keys())[0]]*180/np.pi
+                angle = diff[0]
+                landmark_name = self.mp_pose.PoseLandmark(i).name
+                if landmark_name.startswith("LEFT"):
+                    angle *= -1
+                txt += f"BEND {landmark_name} {'LESS' if angle>0 else 'MORE'} {angle} {list(diff)}\n"
+
+        return txt
+    
+"""
+    def init
         self.single_joint_landmarks = (
             {_ for _ in range(11, 33)}
             - {17, 18, 19, 20, 21, 22, 29, 30, 32, 31}
@@ -28,8 +44,9 @@ class SuggestionBuilder:
 
         self.outer_thigh_arms_set = {frozenset({12, 26}), frozenset({11, 25})}
 
-    def get_suggestions(self, arms_and_angles_diff, angle_error_threshold: float):
-        """
+
+
+    def get_arms_and_angles
         arms_and_angles is a list of {vertex,2 arms connected to it, and angle made up by them}
         the index of the list is the vertex number
         at each index, you have a dictionary of:
@@ -40,7 +57,6 @@ class SuggestionBuilder:
         ex: [{{arm1,arm2}:a12, {arm1,arm3}:a13,{arm2,arm3}:a23}, # this is for vertex 0
         {{arm1,arm2}:a12, {arm1,arm3}:a13,{arm2,arm3}:a23}, # this is for vertex 1
         {{arm1,arm2}:a12, {arm1,arm3}:a13,{arm2,arm3}:a23},...] # and so on
-        """
 
         angles_list = []
         for (
@@ -61,6 +77,9 @@ class SuggestionBuilder:
                 # if(mp_pose.PoseLandmark(landmark).name == "RIGHT_ELBOW"):
                 txt += f"BEND {self.mp_pose.PoseLandmark(landmark).name} {'LESS' if angle>0 else 'MORE'} {angle}\n"
 
+
+        
+
         # constuct messages for shoulders
         for landmark in {
             PoseLandmark.RIGHT_SHOULDER,
@@ -74,4 +93,4 @@ class SuggestionBuilder:
                         elif arms in self.shoulder_neck_arms_set:
                             txt += f"BEND {self.mp_pose.PoseLandmark(landmark).name[:4]} arm {'MORE away from' if angle>0 else 'MORE towards'} neck {angle}\n"
 
-        return txt
+"""
