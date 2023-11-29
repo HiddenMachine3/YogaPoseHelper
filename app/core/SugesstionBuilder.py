@@ -7,7 +7,7 @@ class SuggestionBuilder:
     def __init__(self):
         self.mp_pose = mp.solutions.pose
 
-    def get_suggestions(self, arms_and_angles_diff, angle_error_threshold: float):
+    def get_suggestions(self, arms_and_angles_diff):
         txt = []
         for i in range(33):
             if arms_and_angles_diff[i]:

@@ -66,7 +66,7 @@ def draw_2_way_gradient_line_3d(
 
 
 def draw_2_way_gradient_line_2d(
-    cv2, img, start, end, left_intensity, right_intensity, num_points=100
+    cv2, img, start, end, left_intensity, right_intensity, num_points=100,r=3
 ):
     mid = ((start[0] + end[0]) / 2, (start[1] + end[1]) / 2)  # ,(start[2]+end[2])/2)
     # calculate gradient
@@ -81,7 +81,7 @@ def draw_2_way_gradient_line_2d(
             int(255 * (color1[j] + gradient[i] * (color2[j] - color1[j])))
             for j in range(3)
         )
-        cv2.circle(img, (x, y), 3, color, -1)
+        cv2.circle(img, (x, y), r, color, -1)
 
     color1 = [right_intensity, 1 - right_intensity, 0]
     for i in range(len(gradient)):
@@ -91,7 +91,7 @@ def draw_2_way_gradient_line_2d(
             int(255 * (color1[j] + gradient[i] * (color2[j] - color1[j])))
             for j in range(3)
         )
-        cv2.circle(img, (x, y), 3, color, -1)
+        cv2.circle(img, (x, y), r, color, -1)
 
 
 def _normalize_color(color):
@@ -133,6 +133,7 @@ def draw_error_landmarks_2d(
         DrawingSpec, Mapping[Tuple[int, int], DrawingSpec]
     ] = DrawingSpec(),
     verbose: bool = True,
+    drawing_spec_radius=3
 ):
     if not landmark_list:
         return
@@ -201,6 +202,7 @@ def draw_error_landmarks_2d(
                     left_intensity=left,
                     right_intensity=right,
                     num_points=100,
+                    r = drawing_spec_radius
                 )
 
                 if verbose:
