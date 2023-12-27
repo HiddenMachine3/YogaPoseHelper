@@ -7,11 +7,13 @@ import mediapipe as mp
 import matplotlib.pyplot as plt
 from typing import List, Optional, Tuple
 from mediapipe.framework.formats import landmark_pb2
+from mediapipe.python.solutions.pose import PoseLandmark
 
 
 from app.core.math.math_utility import find_3d_angle
 from app.core.math.math_utility import clamp
 import app.core.graphics.graphics_assistant as graphic
+from vendor.join_angle_calculation.joint_angle_calculator import get_angle_deviations
 
 _PRESENCE_THRESHOLD = 0.1  # for error skeleton calculations only
 _VISIBILITY_THRESHOLD = 0.1  # for error skeleton calculations only
@@ -113,78 +115,10 @@ class PoseHelper:
 
             self.plottable_landmarks[idx] = (-landmark.z, landmark.x, -landmark.y)
 
-        # TODO : REMOVE BELOW COMMENTED CODE
-        # if connections:
-        #     num_landmarks = len(landmark_list.landmark)
-
-        #     for connection in connections:
-        #         start_idx = connection[0]
-        #         end_idx = connection[1]
-
-        #         if not (
-        #             0 <= start_idx < num_landmarks and 0 <= end_idx < num_landmarks
-        #         ):
-        #             raise ValueError(
-        #                 f"Landmark index is out of range. Invalid connection "
-        #                 f"from landmark #{start_idx} to landmark #{end_idx}."
-        #             )
-        #         if (
-        #             start_idx in self.plottable_landmarks
-        #             and end_idx in self.plottable_landmarks
-        #         ):
-        #             try:
-        #                 # add each other the other's 'connected points' set
-        #                 # print(start_idx,end_idx,f"{'same!' if start_idx == end_idx else ''}")
-        #                 connected_points[start_idx].add(end_idx)
-        #                 connected_points[end_idx].add(start_idx)
-        #             except IndexError as e:
-        #                 print(e)
-        #                 print(
-        #                     f"start_idx:{start_idx},end_idx:{end_idx},len(connected_points):{len(connected_points)}"
-        #                 )
-
-        # now we got a set of connected points for each landmark,
-        # lets figure out the angles for every set of 3 connected points (1 vertex and 2 arms, ex: L)
-
-        """
-        looping through every point again to find the
-        angle between every group of arm-vertex-arm
-        """
-        # print(landmarks)
-        # for vertex in range(33):  # len(connected_points)):
-        #     points = list(connected_points[vertex])
-
-        #     num_connections = len(points)
-        #     if num_connections > 1:
-        #         angles = []
-        #         arms = []
-        #         for i in range(num_connections - 1):
-        #             for j in range(i + 1, num_connections):
-        #                 try:
-        #                     # print(landmarks[points[i]],landmarks[vertex],landmarks[points[j]])
-
-        #                     angle = find_3d_angle(
-        #                         landmarks[points[i]],
-        #                         landmarks[vertex],
-        #                         landmarks[points[j]],
-        #                     )
-        #                     angles.append(angle)
-        #                     arms.append(frozenset({points[i], points[j]}))
-        #                 except IndexError as e:
-        #                     print(
-        #                         f"i:{i},j:{j},len(points):{len(points)},len(landmarks):{len(landmarks)},points[i]:{points[i]},points[j]:{points[j]}"
-        #                     )
-        #         # have to convert arms set to a frozenset because keys have to be of immutable type
-        #         arms_and_angles[vertex] = dict(zip(arms, angles))
-
-        from vendor.join_angle_calculation.joint_angle_calculator import get_angle_deviations
-
-        # angles = get_angles() # numpy array of 33 angles at eafch joint
+        
         # TODO : REFACTOR THIS CODE, cause this is a very hacky solution since I didn't have time
         # there is a much more elegant way of doing this
-        # print(landmark_list.landmark)
         angles = get_angle_deviations(landmarks)
-        from mediapipe.python.solutions.pose import PoseLandmark
         
         arms_and_angles = [{},#NOSE = 0
          {},#  LEFT_EYE_INNER = 1
