@@ -4,11 +4,18 @@ import mediapipe as mp
 import numpy as np
 import os
 
+"""
+This script is to collect training data for our CNN to classify poses
+"""
+DATASET_PATH = (
+    "C:\\Users\\cosmo\\Projects\\YogaPoseHelper\\app\\data\\kaggle\\DATASET\\TRAIN"
+)
 pose = mp.solutions.pose.Pose(
     static_image_mode=True, min_detection_confidence=0.3, model_complexity=2
 )
 
-#functions to write and append rows to our csv file
+
+# functions to write and append rows to our csv file
 def write_row(row, mode="w"):
     with open(
         "C:\\Users\\cosmo\\Projects\\YogaPoseHelper\\app\\data\\yogaposes.csv",
@@ -71,10 +78,9 @@ if __name__ == "__main__":
 
     # each directory in kaggle\\DATASET\\TRAIN has its name=the pose's name, and images of that pose are stored under it
     # following code loops through each image file, extracts landmarks of the pose in the image, and stores the coords in a csv
-    dataset_path ="C:\\Users\\cosmo\\Projects\\YogaPoseHelper\\app\\data\\kaggle\\DATASET\\TRAIN"
-    
-    for pose_name in os.listdir(dataset_path):
-        pose_dir_path = os.path.join(dataset_path, pose_name)
+
+    for pose_name in os.listdir(DATASET_PATH):
+        pose_dir_path = os.path.join(DATASET_PATH, pose_name)
         print(pose_dir_path)
         for filename in os.listdir(pose_dir_path):
             file_path = os.path.join(pose_dir_path, filename)
