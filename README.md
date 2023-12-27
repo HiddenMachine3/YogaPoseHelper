@@ -12,8 +12,9 @@ Currrently supports:
 ---
 
 ## Setup:
-Make sure you're using python 3.11.6, and run:
-pip install -r requirements.txt
+Make sure you're using python 3.11.6, \
+and run: \
+`pip install -r requirements.txt`
 
 ---
 ## Usage:
